@@ -6,7 +6,6 @@ import 'pages/home_page.dart';
 import 'pages/settings_page.dart';
 import 'pages/slideshow_page.dart';
 import 'pages/eventslist_page.dart';
-import 'pages/list1_page.dart';
 import 'widgets/app_route_observer.dart';
 
 void main() => runApp(ParusFlutter());
@@ -34,8 +33,7 @@ class ParusFlutter extends StatelessWidget {
         RouteNames.gallery: (_) => const GalleryPage(),
         RouteNames.slideshow: (_) => const SlideshowPage(),
         RouteNames.eventslist: (_) => const EventsListPage(),
-        RouteNames.settings: (_) => const SettingsPage(),
-        RouteNames.list1: (_) => const List1Page()
+        RouteNames.settings: (_) => const SettingsPage()
       },
     );
   }

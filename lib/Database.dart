@@ -3,7 +3,7 @@ import 'dart:io';
 
 import 'package:path/path.dart';
 import 'package:path_provider/path_provider.dart';
-import 'package:parus_flutter/ClientModel.dart';
+import 'package:parus_flutter/EventModel.dart';
 import 'package:sqflite/sqflite.dart';
 
 class DBProvider {
@@ -22,83 +22,86 @@ class DBProvider {
 
   initDB() async {
     Directory documentsDirectory = await getApplicationDocumentsDirectory();
-    String path = join(documentsDirectory.path, "TestDB.db");
+    String path = join(documentsDirectory.path, "EventsDB.db");
     return await openDatabase(path, version: 1, onOpen: (db) {},
         onCreate: (Database db, int version) async {
-      await db.execute("CREATE TABLE Client ("
+      await db.execute(
+          "CREATE TABLE Event ("
           "id INTEGER PRIMARY KEY,"
-          "first_name TEXT,"
-          "last_name TEXT,"
-          "blocked BIT"
+          "clnevents_id INTEGER,"
+          "event_stat TEXT,"
+          "reg_date DateTime,"
+          "change_date DateTime,"
+          "event_descr TEXT"
           ")");
     });
   }
 
-  newClient(Client newClient) async {
+  newEvent(Event newEvent) async {
     final db = await database;
     //get the biggest id in the table
-    var table = await db.rawQuery("SELECT MAX(id)+1 as id FROM Client");
+    var table = await db.rawQuery("SELECT MAX(id)+1 as id FROM Event");
     int id = table.first["id"];
     //insert to the table using the new id
     var raw = await db.rawInsert(
-        "INSERT Into Client (id,first_name,last_name,blocked)"
+        "INSERT Into Event (id,first_name,last_name,blocked)"
         " VALUES (?,?,?,?)",
-        [id, newClient.firstName, newClient.lastName, newClient.blocked]);
+        [id, newEvent.clnevents_id, newEvent.event_stat, newEvent.reg_date, newEvent.change_date, newEvent.event_descr]);
     return raw;
   }
 
-  blockOrUnblock(Client client) async {
+/*  blockOrUnblock(Event Event) async {
     final db = await database;
-    Client blocked = Client(
-        id: client.id,
-        firstName: client.firstName,
-        lastName: client.lastName,
-        blocked: !client.blocked);
-    var res = await db.update("Client", blocked.toMap(),
-        where: "id = ?", whereArgs: [client.id]);
+    Event blocked = Event(
+        id: Event.id,
+        firstName: Event.firstName,
+        lastName: Event.lastName,
+        blocked: !Event.blocked);
+    var res = await db.update("Event", blocked.toMap(),
+        where: "id = ?", whereArgs: [Event.id]);
+    return res;
+  }*/
+
+  updateEvent(Event newEvent) async {
+    final db = await database;
+    var res = await db.update("Event", newEvent.toMap(),
+        where: "id = ?", whereArgs: [newEvent.id]);
     return res;
   }
 
-  updateClient(Client newClient) async {
+  getEvent(int id) async {
     final db = await database;
-    var res = await db.update("Client", newClient.toMap(),
-        where: "id = ?", whereArgs: [newClient.id]);
-    return res;
+    var res = await db.query("Event", where: "id = ?", whereArgs: [id]);
+    return res.isNotEmpty ? Event.fromMap(res.first) : null;
   }
-
-  getClient(int id) async {
-    final db = await database;
-    var res = await db.query("Client", where: "id = ?", whereArgs: [id]);
-    return res.isNotEmpty ? Client.fromMap(res.first) : null;
-  }
-
-  Future<List<Client>> getBlockedClients() async {
+/*
+  Future<List<Event>> getBlockedEvents() async {
     final db = await database;
 
     print("works");
-    // var res = await db.rawQuery("SELECT * FROM Client WHERE blocked=1");
-    var res = await db.query("Client", where: "blocked = ? ", whereArgs: [1]);
+    // var res = await db.rawQuery("SELECT * FROM Event WHERE blocked=1");
+    var res = await db.query("Event", where: "blocked = ? ", whereArgs: [1]);
 
-    List<Client> list =
-        res.isNotEmpty ? res.map((c) => Client.fromMap(c)).toList() : [];
+    List<Event> list =
+        res.isNotEmpty ? res.map((c) => Event.fromMap(c)).toList() : [];
+    return list;
+  }
+*/
+  Future<List<Event>> getAllEvents() async {
+    final db = await database;
+    var res = await db.query("Event");
+    List<Event> list =
+        res.isNotEmpty ? res.map((c) => Event.fromMap(c)).toList() : [];
     return list;
   }
 
-  Future<List<Client>> getAllClients() async {
+  deleteEvent(int id) async {
     final db = await database;
-    var res = await db.query("Client");
-    List<Client> list =
-        res.isNotEmpty ? res.map((c) => Client.fromMap(c)).toList() : [];
-    return list;
-  }
-
-  deleteClient(int id) async {
-    final db = await database;
-    return db.delete("Client", where: "id = ?", whereArgs: [id]);
+    return db.delete("Event", where: "id = ?", whereArgs: [id]);
   }
 
   deleteAll() async {
     final db = await database;
-    db.rawDelete("Delete * from Client");
+    db.rawDelete("Delete * from Event");
   }
 }
